@@ -12,28 +12,30 @@ def extract_gita_text(file_path, output_path):
     for line in content:
         line = line.strip()
 
-        # Ignore empty lines and unnecessary metadata
-        if not line or "Srimad-Bhagavad-Gita" in line or "[p." in line:
+        # Ignore empty lines and non-Gita text
+        if not line or "Srimad-Bhagavad-Gita" in line or "[p." in line or "<page" in line:
             continue
 
-        # Detect Chapter Titles
-        chapter_match = re.match(r'^\s*(CHAPTER\s+\w+|\d+\.\s+.*)', line, re.IGNORECASE)
+        # Detect Chapter Titles (Matches "I. THE GRIEF OF ARJUNA")
+        chapter_match = re.match(r'^([IVXLCDM]+)\.\s+(.*)', line)
         if chapter_match:
             if current_chapter:
                 structured_data[current_chapter] = current_verses  # Store previous chapter
-            current_chapter = chapter_match.group(1).strip()
+            chapter_number = chapter_match.group(1)
+            chapter_name = chapter_match.group(2).strip()
+            current_chapter = f"CHAPTER {chapter_number} - {chapter_name}"
             current_verses = {}  # Reset verses for the new chapter
-            continue  # Skip further processing for this line
+            continue
 
-        # Detect Verse Numbers and Text
-        verse_match = re.match(r'^(\d+\.\d+)\s*(.*)', line)
+        # Detect Verse Numbers and Text (e.g., "1.1 Some text here")
+        verse_match = re.match(r'^(\d+\.\d+)\s+(.+)', line)
         if verse_match:
             verse_number = verse_match.group(1).strip()
             verse_text = verse_match.group(2).strip()
             current_verses[verse_number] = verse_text
             continue
 
-        # Append text to the last detected verse if it was split
+        # Append multi-line text to the last detected verse
         if current_verses and line:
             last_verse = list(current_verses.keys())[-1]
             current_verses[last_verse] += " " + line  # Append to the last verse
@@ -46,11 +48,9 @@ def extract_gita_text(file_path, output_path):
     with open(output_path, "w", encoding="utf-8") as json_file:
         json.dump(structured_data, json_file, indent=4, ensure_ascii=False)
 
-# Set file paths based on your VS Code directory structure
-input_file = "sbg.txt"  # Use your actual file path
+# Run the extraction
+input_file = "sbg.txt"
 output_file = "gita_data.json"
-
-# Run the function
 extract_gita_text(input_file, output_file)
 
-print("Extraction complete. JSON saved at:", output_file)
+print(f"✅ Extraction complete! JSON saved at: {output_file}")
