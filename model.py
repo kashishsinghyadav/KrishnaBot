@@ -21,16 +21,16 @@ for chapter, verses in gita_data.items():
 # Debug: Check if verse_texts is populated
 print(f"Total Verses Loaded: {len(verse_texts)}")
 if not verse_texts:
-    raise ValueError("❌ No verses found! Check your gita_data.json file.")
+    raise ValueError("No verses found! Check your gita_data.json file.")
 
 # Convert Verses to Embeddings
 embeddings = model.encode(verse_texts)
 
 # Debug: Check embedding shape
 if embeddings is None or len(embeddings) == 0:
-    raise ValueError("❌ Embeddings failed! No data encoded.")
+    raise ValueError("Embeddings failed! No data encoded.")
 
-print(f"✅ Embeddings Shape: {embeddings.shape}")
+print(f"Embeddings Shape: {embeddings.shape}")
 
 # Ensure embeddings is in the correct format for FAISS
 embeddings = np.array(embeddings).astype("float32")
@@ -47,4 +47,4 @@ faiss.write_index(index, "gita_faiss.index")
 with open("verse_mappings.json", "w", encoding="utf-8") as f:
     json.dump(verse_mappings, f, indent=4, ensure_ascii=False)
 
-print("✅ Verses stored in FAISS successfully!")
+print("Verses stored in FAISS successfully!")
